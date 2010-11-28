@@ -1,3 +1,10 @@
+INIT source location:
+android-source/system/core/init
+
+To build:
+make PRODUCT-leshak_spica-init
+(or simply make init)
+
 
 The system/ directory is intended for pieces of the world that are the
 core of the embedded linux platform at the heart of Android.  These
