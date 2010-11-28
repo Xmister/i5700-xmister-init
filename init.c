@@ -167,6 +167,54 @@ static void publish_socket(const char *name, int fd)
     fcntl(fd, F_SETFD, 0);
 }
 
+int exec_command(int nargs, char **args)
+{
+	pid_t pid;
+	
+	if ( nargs == 0 || args == NULL ) return -1;
+
+	++args; //step over "exec"
+
+	NOTICE("executing '%s'\n", args[0]);
+
+    pid = fork();
+
+    if (pid == -1) {
+		ERROR("cannot fork child while trying to exec %s",args[0]);
+		return -2;
+	}
+
+    if (pid == 0) {
+		FILE* f;
+		char tmp[32];
+		int fd,sz;
+		get_property_workspace(&fd, &sz);
+        sprintf(tmp, "%d,%d", dup(fd), sz);
+        add_environment("ANDROID_PROPERTY_WORKSPACE", tmp);
+        setpgid(0, getpid());
+        if (execve(args[0], (char**) args, (char**) ENV) < 0) {
+			ERROR("cannot execve('%s'): %s\n", args[0], strerror(errno));
+        }
+        _exit(127);
+	}
+
+	int status;
+	int time_spent=0;
+	
+	while (waitpid(pid, &status, WNOHANG) == 0 && time_spent < 60) {
+		sleep(1);
+		++time_spent;
+	}
+
+	if ( time_spent >= 60 && waitpid(pid, &status, WNOHANG) == 0 ) {
+		ERROR("timeout reached for %s",args[0]);
+		kill( pid, SIGKILL );
+		return -3;
+	}
+	return WEXITSTATUS(status);
+}
+	
+
 void service_start(struct service *svc, const char *dynamic_args)
 {
     struct stat s;

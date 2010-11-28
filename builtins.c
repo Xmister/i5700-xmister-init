@@ -154,7 +154,7 @@ int do_domainname(int nargs, char **args)
 
 int do_exec(int nargs, char **args)
 {
-    return -1;
+    return exec_command(nargs,args);
 }
 
 int do_export(int nargs, char **args)
