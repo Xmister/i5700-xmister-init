@@ -280,6 +280,14 @@ int do_mount(int nargs, char **args)
     source = args[2];
     target = args[3];
 
+    if (!strncmp(system,"ext",3)) {
+		//exec /xbin/busybox sh -c "e2fsck -fyc /dev/stl7 > /cache_check.txt"
+		char co[256];
+		sprintf(co,"e2fsck -fyc %s > %s_check.txt",source,target);
+		char* args[] = { "exec", "/xbin/busybox", "sh", "-c", co , NULL };
+		do_exec(5,args);
+	}
+
     if (!strncmp(source, "mtd@", 4)) {
         n = mtd_name_to_number(source + 4);
         if (n < 0) {
