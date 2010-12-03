@@ -206,7 +206,23 @@ int do_insmod(int nargs, char **args)
 
 int do_import(int nargs, char **args)
 {
-    return parse_config_file(args[1]);
+	int i;
+	FILE* f;
+	switch ( nargs ) {
+		case 0:
+		case 1:
+			return -1;
+		case 2:
+			return parse_config_file(args[1]);
+		default:
+			for (i=0; i<nargs; ++i) {
+				if ( (f=fopen(*(++args),"r")) ) {
+					fclose(f);
+					break;
+				}
+			}
+			return parse_config_file(*args);
+	}
 }
 
 int do_mkdir(int nargs, char **args)
